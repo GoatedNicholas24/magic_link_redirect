@@ -96,10 +96,10 @@
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJiZ3BhZnVsbm93bGdkdWNrZ2llIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgzMDE5NjIsImV4cCI6MjA1Mzg3Nzk2Mn0.Su5j3p4Lc1b-Wfskks6Ogh7IzSlsKTJZVy5jHNflHd0'
   );
 
-  // Extract token or access_token from URL
+ // Extract token from query (?token=xyz)
   function getTokenFromURL() {
     const params = new URLSearchParams(window.location.search);
-    return params.get("access_token") || params.get("token");
+    return params.get("token");
   }
 
   // Show messages and handle loader/button visibility
@@ -120,29 +120,27 @@
       showMessage('Invalid or expired link.', 'error');
       return;
     }
+try {
+      // Exchange token for a session
+      const { data, error } = await supabase.auth.exchangeCodeForSession(token);
 
-    try {
-      // Call Supabase to verify token
-      const { data, error } = await supabase
-        .auth
-        .signInWithOAuth({ provider: 'magiclink', token });
+      if (error) throw error;
 
-      if (error || !data.user) {
-        showMessage('Invalid or expired link.', 'error');
-        return;
-      }
-
-      // On success, redirect: try deep link, fallback to web
+      // Success → Redirect to app
       showMessage('Sign-in successful! Redirecting...', 'success');
       setTimeout(() => {
-        window.location.href = 'marketplace://home';
+        window.location.href = 'marketplace://home'; // deep link for app
         setTimeout(() => {
-          window.location.href = 'https://goatednicholas24.github.io/magic_link_redirect/';
+          window.location.href = ''; // web fallback
         }, 1500);
       }, 1000);
+
     } catch (err) {
+      console.error('Supabase verification failed:', err);
       showMessage('Sign-in failed. Please try again.', 'error');
     }
+
+    
   })();
 </script>
 </body>
