@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Marketplace - Signing You In</title>
+  <title>Watiti Marketplace - Reset Password</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <!-- Supabase JS CDN -->
   <script src="https://unpkg.com/@supabase/supabase-js"></script>
@@ -31,20 +31,16 @@
       gap: 1.2rem;
       align-items: center;
     }
-    h2 { color: #129656; margin-bottom: 0.5rem; }
+    h2 { color: #1abc9c; margin-bottom: 0.5rem; }
     .loader {
       border: 4px solid #eee;
-      border-top: 4px solid #129656;
+      border-top: 4px solid #1abc9c;
       border-radius: 50%;
       width: 36px;
       height: 36px;
       animation: spin 1s linear infinite;
       margin: 0 auto 1rem auto;
-      display: block;
-    }
-    @keyframes spin {
-      0% { transform: rotate(0deg);}
-      100% { transform: rotate(360deg);}
+      display: none;
     }
     .message {
       font-size: 1.1rem;
@@ -62,7 +58,7 @@
     .btn {
       display: inline-block;
       padding: 0.7rem 1.5rem;
-      background: #129656;
+      background: #1abc9c;
       color: #fff;
       border: none;
       border-radius: 6px;
@@ -74,6 +70,15 @@
       transition: background 0.2s;
     }
     .btn:hover { background: #0d6918; }
+    .input {
+      width: 100%;
+      padding: 0.7rem;
+      margin-bottom: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 1rem;
+      box-sizing: border-box;
+    }
     @media (max-width: 480px) {
       .card {
         padding: 1.5rem 0.5rem;
@@ -84,10 +89,15 @@
 </head>
 <body>
   <div class="card">
-    <h2>Marketplace</h2>
+    <h2>Reset Password</h2>
     <div class="loader" id="loader"></div>
-    <div class="message" id="message">Signing you in... please wait</div>
-    <a id="retryBtn" class="btn" href="https://marketplace.app/home" style="display:none;">Go Back to Sign In</a>
+    <div class="message" id="message">Enter your new password below.</div>
+    <form id="resetForm">
+      <input type="password" id="password" class="input" placeholder="New password" required minlength="6" autocomplete="new-password" />
+      <input type="password" id="confirmPassword" class="input" placeholder="Confirm new password" required minlength="6" autocomplete="new-password" />
+      <button type="submit" class="btn">Update Password</button>
+    </form>
+    <a id="retryBtn" class="btn" href="https://yourdomain.com/login" style="display:none;">Back to Sign In</a>
   </div>
 <script>
   // Initialize Supabase (replace with your real values)
@@ -96,52 +106,47 @@
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJiZ3BhZnVsbm93bGdkdWNrZ2llIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgzMDE5NjIsImV4cCI6MjA1Mzg3Nzk2Mn0.Su5j3p4Lc1b-Wfskks6Ogh7IzSlsKTJZVy5jHNflHd0'
   );
 
- // Extract token from query (?token=xyz)
-  function getTokenFromURL() {
-    const params = new URLSearchParams(window.location.search);
-    return params.get("token");
-  }
-
   // Show messages and handle loader/button visibility
   function showMessage(msg, type) {
-    document.getElementById('loader').style.display = type === 'error' ? 'none' : '';
+    document.getElementById('loader').style.display = type === 'loading' ? 'block' : 'none';
     const message = document.getElementById('message');
     message.textContent = msg;
     message.className = 'message' + (type ? ' ' + type : '');
     document.getElementById('retryBtn').style.display = type === 'error' ? 'inline-block' : 'none';
   }
 
-  // Main logic
-  (async function handleMagicLink() {
-    const token = getTokenFromURL();
+  // Handle password reset form submission
+  document.getElementById('resetForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    showMessage('Updating password...', 'loading');
 
-    // If token is missing or too short, show error and button
-    if (!token || token.length < 10) {
-      showMessage('Invalid or expired link.', 'error');
+    const password = document.getElementById('password').value;
+    const confirm = document.getElementById('confirmPassword').value;
+
+    if (password !== confirm) {
+      showMessage('Passwords do not match.', 'error');
       return;
     }
-try {
-      // Exchange token for a session
-      const { data, error } = await supabase.auth.exchangeCodeForSession(token);
+    if (password.length < 6) {
+      showMessage('Password must be at least 6 characters.', 'error');
+      return;
+    }
+
+    try {
+      // Update password using Supabase
+      const { data, error } = await supabase.auth.updateUser({ password });
 
       if (error) throw error;
 
-      // Success → Redirect to app
-      showMessage('Sign-in successful! Redirecting...', 'success');
+      showMessage('Password updated! Redirecting to sign in...', 'success');
+      document.getElementById('resetForm').style.display = 'none';
       setTimeout(() => {
-        window.location.href = 'https://marketplace.app/home'; // deep link for app
-        setTimeout(() => {
-          window.location.href = 'https://goatednicholas24.github.io/magic_link_redirect/'; // web fallback
-        }, 1500);
-      }, 1000);
-
+        window.location.href = 'https://yourdomain.com/login';
+      }, 1800);
     } catch (err) {
-      console.error('Supabase verification failed:', err);
-      showMessage('Sign-in failed. Please try again.', 'error');
+      showMessage('Failed to update password. Please try again.', 'error');
     }
-
-    
-  })();
+  });
 </script>
 </body>
 </html>
