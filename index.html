@@ -87,7 +87,7 @@
     <h2>Marketplace</h2>
     <div class="loader" id="loader"></div>
     <div class="message" id="message">Signing you in... please wait</div>
-    <a id="retryBtn" class="btn" href="marketplace://home" style="display:none;">Go Back to Sign In</a>
+    <a id="retryBtn" class="btn" href="marketplace://marketplace.app/home" style="display:none;">Go Back to Sign In</a>
   </div>
 <script>
   // Initialize Supabase (replace with your real values)
@@ -129,7 +129,7 @@ try {
       // Success → Redirect to app
       showMessage('Sign-in successful! Redirecting...', 'success');
       setTimeout(() => {
-        window.location.href = 'marketplace://home'; // deep link for app
+        window.location.href = 'marketplace://marketplace.app/home'; // deep link for app
         setTimeout(() => {
           window.location.href = 'https://goatednicholas24.github.io/magic_link_redirect/'; // web fallback
         }, 1500);
